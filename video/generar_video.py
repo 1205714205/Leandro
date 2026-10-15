@@ -28,7 +28,12 @@ GRIS = (170, 190, 205)
 
 # Narración con la voz del Dr. Leandro (ElevenLabs). Si existe, se mezcla
 # sobre la música y las escenas están sincronizadas con sus frases.
-NARRACION = os.path.join(AQUI, "narracion_leandro.mp3")
+# La narración se arma con la grabación base y la frase de proyectos, que se
+# inserta después de la frase de Sexología (en CORTE_BASE segundos del audio base).
+NARRACION = os.path.join(AQUI, "narracion_base.mp3")
+NARRACION_PROYECTOS = os.path.join(AQUI, "narracion_proyectos.mp3")
+CORTE_BASE = 22.85
+PAUSA = 0.4
 RETRASO_VOZ_MS = 800
 
 FOTOS = os.path.join(AQUI, "fotos")
@@ -41,19 +46,22 @@ SUBTITULOS = [
     (11.4, 13.9, "Soy masterado en Gerencia en Servicios de la Salud,"),
     (14.1, 17.0, "y en Asesoramiento de Imagen y Consultoría Política."),
     (17.3, 23.5, "Actualmente culmino mi masterado en Sexología, para acompañar\nla salud integral y el bienestar de las personas."),
-    (23.8, 26.1, "Salud, gestión y comunicación."),
-    (26.4, 28.2, "Bienvenidos a mi perfil."),
+    (24.05, 28.2, "Además, estamos construyendo el curso de\nDirección Sanitaria Aumentada,"),
+    (28.4, 32.3, "y ASTRA, un videojuego para aprender\na gestionar hospitales."),
+    (32.85, 35.2, "Salud, gestión y comunicación."),
+    (35.5, 37.3, "Bienvenidos a mi perfil."),
 ]
 
 # (duración en segundos, etiqueta, título, subtítulo, foto)
 ESCENAS = [
     (6.7, "PERFIL PROFESIONAL", "Dr. Leandro Pio\nValero Peñafiel", "Médico · Especialista en Salud Digital", ["retrato_traje.jpg", "retrato_bata_medival.jpg"]),
-    (4.4, "01 · ESPECIALIDAD", "Salud Digital", "Tecnología e innovación al servicio\nde la atención médica", ["equipo_medico.jpg"]),
-    (2.7, "02 · MASTERADO", "Gerencia en\nServicios de la Salud", "Gestión y dirección de\ninstituciones de salud", ["reunion_institucional.jpg"]),
+    (4.4, "01 · ESPECIALIDAD", "Salud Digital", "Tecnología e innovación al servicio\nde la atención médica", ["telemedicina.jpg", "equipo_medico.jpg"]),
+    (2.7, "02 · MASTERADO", "Gerencia en\nServicios de la Salud", "Gestión y dirección de\ninstituciones de salud", ["reunion_institucional.jpg", "medival_tablero_gestion.jpg"]),
     (3.2, "03 · MASTERADO", "Asesoramiento de Imagen\ny Consultoría Política", "Comunicación estratégica y liderazgo", ["charla_presentacion.jpg"]),
-    (6.5, "04 · EN CURSO", "Masterado en\nSexología", "Salud integral y bienestar humano",
-     ["visita_domiciliaria.jpg", "registro_comunidad.jpg", "visita_cocina.jpg"]),
-    (8.0, "", "Leandro Valero", "Salud · Gestión · Comunicación", "retrato_bata_corbata.jpg"),
+    (6.5, "04 · EN CURSO", "Masterado en\nSexología", "Salud integral y bienestar humano", ["retrato_bata_corbata.jpg"]),
+    (9.1, "05 · EN DESARROLLO", "Proyectos en\ndesarrollo", "Curso Dirección Sanitaria\nAumentada y ASTRA, videojuego\nde gestión hospitalaria",
+     [("logo_dsa.jpg", 4.9), ("astra_simulador.jpg", 2.3), ("medival_presentacion_72h.jpg", 1.9)], "ancho"),
+    (10.5, "", "Leandro Valero", "Salud · Gestión · Comunicación", "retrato_traje_gris.jpg"),
 ]
 TOTAL = sum(e[0] for e in ESCENAS)
 
@@ -61,18 +69,41 @@ TOTAL = sum(e[0] for e in ESCENAS)
 MOSAICO = ["familia.jpg", "reconocimiento.jpg", "trabajo_campo.jpg", "visita_salud_hogar.jpg", "hijo_copa.jpg"]
 LOGO = "logo_medival.jpg"
 
-# Encuadre de cada foto (foco_x, foco_y): 0 = izquierda/arriba, 1 = derecha/abajo.
-# Un tercer valor opcional acerca la foto. La charla se encuadra para dejar
-# fuera el banner del fondo.
+# Datos de contacto del cierre: (etiqueta, valor)
+CONTACTO = [
+    ("WhatsApp", "098 962 3790"),
+    ("Correo", "valeroyasociados9@gmail.com"),
+    ("LinkedIn", "in/leandro-valero-b00492112"),
+]
+
+# Encuadre y movimiento de cada foto: (foco_x, foco_y, zoom, paneo_x, paneo_y).
+# foco: 0 = izquierda/arriba, 1 = derecha/abajo. El paneo es cuánto se desplaza
+# el encuadre durante la escena; el zoom crece un 18 % para dar efecto de clip.
+# La charla se encuadra para dejar fuera el banner del fondo.
 FOCO = {
-    "retrato_traje.jpg": (0.5, 0.1), "retrato_bata_medival.jpg": (0.5, 0.12),
-    "retrato_bata_corbata.jpg": (0.5, 0.15), "equipo_medico.jpg": (0.58, 0.4),
-    "reunion_institucional.jpg": (0.5, 0.4), "charla_presentacion.jpg": (0.61, 0.34, 1.4),
-    "visita_domiciliaria.jpg": (0.5, 0.25), "registro_comunidad.jpg": (0.2, 0.4),
-    "visita_cocina.jpg": (0.95, 0.3), "familia.jpg": (0.5, 0.45),
-    "reconocimiento.jpg": (0.5, 0.6), "trabajo_campo.jpg": (0.5, 0.4),
-    "visita_salud_hogar.jpg": (0.1, 0.3), "hijo_copa.jpg": (0.5, 0.35),
+    "retrato_traje.jpg": (0.5, 0.08, 1.0, 0.0, 0.0),
+    "retrato_bata_medival.jpg": (0.5, 0.1, 1.0, 0.0, 0.0),
+    "retrato_bata_corbata.jpg": (0.5, 0.12, 1.0, 0.0, 0.0),
+    "equipo_medico.jpg": (0.45, 0.4, 1.0, 0.3, 0.0),
+    "reunion_institucional.jpg": (0.55, 0.4, 1.0, -0.25, 0.0),
+    "charla_presentacion.jpg": (0.68, 0.34, 1.35, 0.12, 0.0),
+    "telemedicina.jpg": (0.62, 0.4, 1.0, 0.0, 0.1),
+    "medival_tablero_gestion.jpg": (0.47, 0.45, 1.0, 0.0, 0.0),
+    "logo_dsa.jpg": (0.5, 0.5, 1.0, 0.0, 0.0),
+    "astra_simulador.jpg": (0.12, 0.5, 1.0, 0.2, 0.0),
+    "medival_presentacion_72h.jpg": (0.3, 0.4, 1.0, 0.25, 0.0),
+    "retrato_traje_gris.jpg": (0.5, 0.12),
+    "familia.jpg": (0.5, 0.45), "reconocimiento.jpg": (0.5, 0.6),
+    "trabajo_campo.jpg": (0.5, 0.4), "visita_salud_hogar.jpg": (0.1, 0.3),
+    "hijo_copa.jpg": (0.5, 0.35),
 }
+CRECE_ZOOM = 0.18
+
+
+def suave_lineal(x):
+    """Avance casi lineal (para movimiento continuo de cámara)."""
+    x = max(0.0, min(1.0, x))
+    return x * x * (3 - 2 * x) * 0.3 + x * 0.7
 
 
 def suave(x):
@@ -134,6 +165,7 @@ F_TIT = fuente("Bold", 84)
 F_SUBT = fuente("Medium", 38)
 
 PANEL = (1240, 150, 1760, 890)  # x0, y0, x1, y1 del recuadro de foto
+PANEL_ANCHO = (960, 200, 1800, 673)  # recuadro 16:9 para afiches y logos
 _cache_fotos = {}
 
 
@@ -142,12 +174,12 @@ def foto_recortada(nombre, ancho, alto, zoom=1.0, foco_y=0.3, foco_x=0.5):
     if nombre not in _cache_fotos:
         _cache_fotos[nombre] = Image.open(os.path.join(FOTOS, nombre)).convert("RGB")
     im = _cache_fotos[nombre]
+    # Recorte con coordenadas decimales para que el movimiento sea suave
     esc = max(ancho / im.width, alto / im.height) * zoom
-    w, h = int(im.width * esc), int(im.height * esc)
-    im = im.resize((w, h), Image.BICUBIC)
-    x = int((w - ancho) * foco_x)
-    y = int((h - alto) * foco_y)
-    return im.crop((x, y, x + ancho, y + alto))
+    bw, bh = ancho / esc, alto / esc
+    fx, fy = min(max(foco_x, 0.0), 1.0), min(max(foco_y, 0.0), 1.0)
+    bx, by = (im.width - bw) * fx, (im.height - bh) * fy
+    return im.resize((ancho, alto), Image.BICUBIC, box=(bx, by, bx + bw, by + bh))
 
 
 def mascara_redondeada(ancho, alto, radio):
@@ -156,22 +188,32 @@ def mascara_redondeada(ancho, alto, radio):
     return m
 
 
-def foto_panel(nombres, w, h, tl, dur):
-    """Muestra las fotos de la escena una tras otra, con fundido cruzado."""
-    tramo = dur / len(nombres)
-    i = min(int(tl / tramo), len(nombres) - 1)
+def foto_panel(fotos, w, h, tl, dur):
+    """Muestra las fotos de la escena una tras otra, con fundido cruzado.
+
+    Cada foto puede ser un nombre o (nombre, segundos) para fijar su duración
+    y que coincida con lo que dice la narración.
+    """
+    fotos = [f if isinstance(f, tuple) else (f, dur / len(fotos)) for f in fotos]
+    inicios, acum = [], 0.0
+    for _, seg in fotos:
+        inicios.append(acum)
+        acum += seg
+    i = max(k for k in range(len(fotos)) if tl >= inicios[k] or k == 0)
     def una(k):
-        fx, fy, *z = FOCO.get(nombres[k], (0.5, 0.2))
-        z = z[0] if z else 1.0
-        return foto_recortada(nombres[k], w, h, zoom=z + 0.04 * (tl - k * tramo), foco_y=fy, foco_x=fx)
+        nombre, seg = fotos[k]
+        fx, fy, z, px, py = FOCO.get(nombre, (0.5, 0.2, 1.0, 0.0, 0.0))
+        p = suave_lineal((tl - inicios[k] + 0.4) / (seg + 0.4))
+        return foto_recortada(nombre, w, h, zoom=z * (1 + CRECE_ZOOM * p),
+                              foco_x=fx + px * (p - 0.5), foco_y=fy + py * (p - 0.5))
     foto = una(i)
-    if i > 0 and tl - i * tramo < 0.4:
-        foto = Image.blend(una(i - 1), foto, suave((tl - i * tramo) / 0.4))
+    if i > 0 and tl - inicios[i] < 0.4:
+        foto = Image.blend(una(i - 1), foto, suave((tl - inicios[i]) / 0.4))
     return foto
 
 
-def poner_foto(img, nombres, tl, dur, vis, entrada):
-    x0, y0, x1, y1 = PANEL
+def poner_foto(img, nombres, tl, dur, vis, entrada, panel=PANEL):
+    x0, y0, x1, y1 = panel
     w, h = x1 - x0, y1 - y0
     foto = foto_panel(nombres, w, h, tl, dur)
     dx = int(60 * (1 - entrada))
@@ -196,10 +238,33 @@ def poner_mosaico(img, tl, salida):
         a = min(suave((tl - 1.2 - 0.25 * k) / 0.6), salida)
         if a <= 0:
             continue
-        fx, fy = FOCO.get(nombre, (0.5, 0.3))
-        foto = foto_recortada(nombre, tw, th, foco_y=fy, foco_x=fx)
+        fx, fy = FOCO.get(nombre, (0.5, 0.3))[:2]
+        foto = foto_recortada(nombre, tw, th, zoom=1.0 + 0.03 * tl, foco_y=fy, foco_x=fx)
         mask = mascara_redondeada(tw, th, 18).point(lambda p: int(p * a))
         img.paste(foto, (xs + k * (tw + gap), y + int(30 * (1 - a))), mask)
+
+
+def poner_contacto(img, a):
+    if a <= 0:
+        return
+    d = ImageDraw.Draw(img, "RGBA")
+    f_et, f_val = fuente("SemiBold", 26), fuente("Medium", 32)
+    piezas = []
+    for et, val in CONTACTO:
+        we = d.textbbox((0, 0), et.upper(), font=f_et)[2]
+        wv = d.textbbox((0, 0), val, font=f_val)[2]
+        piezas.append((et.upper(), val, we, wv))
+    sep = 70
+    total = sum(we + 14 + wv for _, _, we, wv in piezas) + sep * (len(piezas) - 1)
+    x, y = (W - total) // 2, 885
+    for i, (et, val, we, wv) in enumerate(piezas):
+        d.text((x, y + 5), et, font=f_et, fill=ACENTO + (int(255 * a),))
+        x += we + 14
+        d.text((x, y), val, font=f_val, fill=BLANCO + (int(255 * a),))
+        x += wv
+        if i < len(piezas) - 1:
+            d.ellipse((x + sep // 2 - 4, y + 16, x + sep // 2 + 4, y + 24), fill=DORADO + (int(255 * a),))
+            x += sep
 
 
 def poner_logo(img, a):
@@ -212,7 +277,7 @@ def poner_logo(img, a):
 
 
 def poner_retrato_circular(img, nombre, centro, diam, vis):
-    fx, fy = FOCO.get(nombre, (0.5, 0.12))
+    fx, fy = FOCO.get(nombre, (0.5, 0.12))[:2]
     foto = foto_recortada(nombre, diam, diam, foco_y=fy, foco_x=fx)
     m = Image.new("L", (diam, diam), 0)
     ImageDraw.Draw(m).ellipse((0, 0, diam - 1, diam - 1), fill=int(255 * vis))
@@ -246,7 +311,8 @@ F_SUB = fuente("Regular", 44)
 
 
 def escena(img, idx, tl, dur):
-    etiq, tit, sub, foto = ESCENAS[idx][1:]
+    etiq, tit, sub, foto = ESCENAS[idx][1:5]
+    panel = PANEL_ANCHO if ESCENAS[idx][5:] == ("ancho",) else PANEL
     entrada = suave(tl / 0.9)
     salida = 1 - suave((tl - (dur - 0.6)) / 0.6) if idx < len(ESCENAS) - 1 else 1 - suave((tl - (dur - 1.2)) / 1.2)
     vis = min(entrada, salida)
@@ -260,6 +326,7 @@ def escena(img, idx, tl, dur):
         poner_retrato_circular(img, foto, (W // 2, 165), 210, vis)
         poner_logo(img, vis)
         poner_mosaico(img, tl, salida)
+        poner_contacto(img, min(suave((tl - 2.4) / 0.8), salida))
         f_t = F_TIT_FIN
         a = int(255 * vis)
         bb = d.textbbox((0, 0), tit, font=f_t)
@@ -272,7 +339,7 @@ def escena(img, idx, tl, dur):
         bb = d.textbbox((0, 0), sub, font=F_SUB)
         d.text(((W - (bb[2] - bb[0])) // 2, y + 215), sub, font=F_SUB, fill=DORADO + (a2,))
     else:
-        poner_foto(img, foto, tl, dur, vis, entrada)
+        poner_foto(img, foto, tl, dur, vis, entrada, panel)
         desliz = int(80 * (1 - entrada))
         y = 250 if idx == 0 else 280
         a_e = int(255 * vis)
@@ -282,7 +349,7 @@ def escena(img, idx, tl, dur):
         y += 70
         # Ajusta el tamaño del título para que no toque la foto
         tam = 84
-        while max(d.textbbox((0, 0), l, font=fuente("Bold", tam))[2] for l in tit.split("\n")) > PANEL[0] - x0 - 90:
+        while max(d.textbbox((0, 0), l, font=fuente("Bold", tam))[2] for l in tit.split("\n")) > panel[0] - x0 - 90:
             tam -= 2
         f_tit = F_TIT if tam == 84 else fuente("Bold", tam)
         y = texto_multilinea(d, (x0 + desliz, y), tit, f_tit, BLANCO, int(tam * 1.19), int(255 * vis))
@@ -334,9 +401,15 @@ def generar_audio():
     if os.path.exists(NARRACION):
         musica = AUDIO + ".musica.wav"
         subprocess.run([
-            "ffmpeg", "-y", "-loglevel", "error", "-i", musica, "-i", NARRACION,
+            "ffmpeg", "-y", "-loglevel", "error", "-i", musica, "-i", NARRACION, "-i", NARRACION_PROYECTOS,
             "-filter_complex",
-            f"[0:a]volume=0.45[m];[1:a]adelay={RETRASO_VOZ_MS}|{RETRASO_VOZ_MS},volume=1.6[v];"
+            "[1:a]aresample=44100,aformat=channel_layouts=mono,asplit[b1][b2];"
+            "[2:a]aresample=44100,aformat=channel_layouts=mono[pr];"
+            f"[b1]atrim=0:{CORTE_BASE},asetpts=PTS-STARTPTS[a];"
+            f"[b2]atrim=start={CORTE_BASE},asetpts=PTS-STARTPTS[c];"
+            f"aevalsrc=0:s=44100:d={PAUSA}[s1];aevalsrc=0:s=44100:d={PAUSA}[s2];"
+            "[a][s1][pr][s2][c]concat=n=5:v=0:a=1[voz];"
+            f"[0:a]volume=0.45[m];[voz]adelay={RETRASO_VOZ_MS}|{RETRASO_VOZ_MS},volume=1.6[v];"
             "[m][v]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95",
             "-ac", "2", AUDIO,
         ], check=True)
