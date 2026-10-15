@@ -47,14 +47,32 @@ SUBTITULOS = [
 
 # (duración en segundos, etiqueta, título, subtítulo, foto)
 ESCENAS = [
-    (6.7, "PERFIL PROFESIONAL", "Dr. Leandro Pio\nValero Peñafiel", "Médico · Especialista en Salud Digital", "retrato_traje.jpg"),
-    (4.4, "01 · ESPECIALIDAD", "Salud Digital", "Tecnología e innovación al servicio\nde la atención médica", "retrato_bata.jpg"),
-    (2.7, "02 · MASTERADO", "Gerencia en\nServicios de la Salud", "Gestión y dirección de\ninstituciones de salud", "retrato_bata.jpg"),
-    (3.2, "03 · MASTERADO", "Asesoramiento de Imagen\ny Consultoría Política", "Comunicación estratégica y liderazgo", "saludo_comunidad.jpg"),
-    (6.5, "04 · EN CURSO", "Masterado en\nSexología", "Salud integral y bienestar humano", "retrato_traje.jpg"),
-    (8.0, "", "Leandro Valero", "Salud · Gestión · Comunicación", "retrato_traje.jpg"),
+    (6.7, "PERFIL PROFESIONAL", "Dr. Leandro Pio\nValero Peñafiel", "Médico · Especialista en Salud Digital", ["retrato_traje.jpg", "retrato_bata_medival.jpg"]),
+    (4.4, "01 · ESPECIALIDAD", "Salud Digital", "Tecnología e innovación al servicio\nde la atención médica", ["equipo_medico.jpg"]),
+    (2.7, "02 · MASTERADO", "Gerencia en\nServicios de la Salud", "Gestión y dirección de\ninstituciones de salud", ["reunion_institucional.jpg"]),
+    (3.2, "03 · MASTERADO", "Asesoramiento de Imagen\ny Consultoría Política", "Comunicación estratégica y liderazgo", ["charla_presentacion.jpg"]),
+    (6.5, "04 · EN CURSO", "Masterado en\nSexología", "Salud integral y bienestar humano",
+     ["visita_domiciliaria.jpg", "registro_comunidad.jpg", "visita_cocina.jpg"]),
+    (8.0, "", "Leandro Valero", "Salud · Gestión · Comunicación", "retrato_bata_corbata.jpg"),
 ]
 TOTAL = sum(e[0] for e in ESCENAS)
+
+# Mosaico de fotos del cierre
+MOSAICO = ["familia.jpg", "reconocimiento.jpg", "trabajo_campo.jpg", "visita_salud_hogar.jpg", "hijo_copa.jpg"]
+LOGO = "logo_medival.jpg"
+
+# Encuadre de cada foto (foco_x, foco_y): 0 = izquierda/arriba, 1 = derecha/abajo.
+# Un tercer valor opcional acerca la foto. La charla se encuadra para dejar
+# fuera el banner del fondo.
+FOCO = {
+    "retrato_traje.jpg": (0.5, 0.1), "retrato_bata_medival.jpg": (0.5, 0.12),
+    "retrato_bata_corbata.jpg": (0.5, 0.15), "equipo_medico.jpg": (0.58, 0.4),
+    "reunion_institucional.jpg": (0.5, 0.4), "charla_presentacion.jpg": (0.61, 0.34, 1.4),
+    "visita_domiciliaria.jpg": (0.5, 0.25), "registro_comunidad.jpg": (0.2, 0.4),
+    "visita_cocina.jpg": (0.95, 0.3), "familia.jpg": (0.5, 0.45),
+    "reconocimiento.jpg": (0.5, 0.6), "trabajo_campo.jpg": (0.5, 0.4),
+    "visita_salud_hogar.jpg": (0.1, 0.3), "hijo_copa.jpg": (0.5, 0.35),
+}
 
 
 def suave(x):
@@ -138,12 +156,24 @@ def mascara_redondeada(ancho, alto, radio):
     return m
 
 
-def poner_foto(img, nombre, tl, vis, entrada):
+def foto_panel(nombres, w, h, tl, dur):
+    """Muestra las fotos de la escena una tras otra, con fundido cruzado."""
+    tramo = dur / len(nombres)
+    i = min(int(tl / tramo), len(nombres) - 1)
+    def una(k):
+        fx, fy, *z = FOCO.get(nombres[k], (0.5, 0.2))
+        z = z[0] if z else 1.0
+        return foto_recortada(nombres[k], w, h, zoom=z + 0.04 * (tl - k * tramo), foco_y=fy, foco_x=fx)
+    foto = una(i)
+    if i > 0 and tl - i * tramo < 0.4:
+        foto = Image.blend(una(i - 1), foto, suave((tl - i * tramo) / 0.4))
+    return foto
+
+
+def poner_foto(img, nombres, tl, dur, vis, entrada):
     x0, y0, x1, y1 = PANEL
     w, h = x1 - x0, y1 - y0
-    foco = 0.5 if "saludo" in nombre else 0.15
-    foco_x = 0.7 if "saludo" in nombre else 0.5
-    foto = foto_recortada(nombre, w, h, zoom=1.0 + 0.04 * tl, foco_y=foco, foco_x=foco_x)
+    foto = foto_panel(nombres, w, h, tl, dur)
     dx = int(60 * (1 - entrada))
     mask = mascara_redondeada(w, h, 28).point(lambda p: int(p * vis))
     # Sombra y borde de acento
@@ -157,8 +187,33 @@ def poner_foto(img, nombre, tl, vis, entrada):
     d.rounded_rectangle((x0 + dx - 14, y0 - 14, x0 + dx + 110, y0 - 8), 3, fill=ACENTO + (int(255 * vis),))
 
 
+def poner_mosaico(img, tl, salida):
+    n = len(MOSAICO)
+    tw, th, gap = 280, 200, 24
+    xs = (W - (n * tw + (n - 1) * gap)) // 2
+    y = 650
+    for k, nombre in enumerate(MOSAICO):
+        a = min(suave((tl - 1.2 - 0.25 * k) / 0.6), salida)
+        if a <= 0:
+            continue
+        fx, fy = FOCO.get(nombre, (0.5, 0.3))
+        foto = foto_recortada(nombre, tw, th, foco_y=fy, foco_x=fx)
+        mask = mascara_redondeada(tw, th, 18).point(lambda p: int(p * a))
+        img.paste(foto, (xs + k * (tw + gap), y + int(30 * (1 - a))), mask)
+
+
+def poner_logo(img, a):
+    logo = Image.open(os.path.join(FOTOS, LOGO)).convert("RGB")
+    lw = 190
+    logo = logo.resize((lw, int(logo.height * lw / logo.width)), Image.BICUBIC)
+    x, y = W - lw - 60, 50
+    mask = mascara_redondeada(logo.width, logo.height, 18).point(lambda p: int(p * a))
+    img.paste(logo, (x, y), mask)
+
+
 def poner_retrato_circular(img, nombre, centro, diam, vis):
-    foto = foto_recortada(nombre, diam, diam, foco_y=0.12)
+    fx, fy = FOCO.get(nombre, (0.5, 0.12))
+    foto = foto_recortada(nombre, diam, diam, foco_y=fy, foco_x=fx)
     m = Image.new("L", (diam, diam), 0)
     ImageDraw.Draw(m).ellipse((0, 0, diam - 1, diam - 1), fill=int(255 * vis))
     cx, cy = centro
@@ -202,12 +257,14 @@ def escena(img, idx, tl, dur):
     final = idx == len(ESCENAS) - 1
 
     if final:
-        poner_retrato_circular(img, foto, (W // 2, 270), 260, vis)
+        poner_retrato_circular(img, foto, (W // 2, 165), 210, vis)
+        poner_logo(img, vis)
+        poner_mosaico(img, tl, salida)
         f_t = F_TIT_FIN
         a = int(255 * vis)
         bb = d.textbbox((0, 0), tit, font=f_t)
         tw = bb[2] - bb[0]
-        y = 440 + int(30 * (1 - entrada))
+        y = 290 + int(30 * (1 - entrada))
         d.text(((W - tw) // 2, y), tit, font=f_t, fill=BLANCO + (a,))
         largo = int(520 * suave((tl - 0.5) / 1.0))
         d.rectangle(((W - largo) // 2, y + 175, (W + largo) // 2, y + 181), fill=ACENTO + (a,))
@@ -215,7 +272,7 @@ def escena(img, idx, tl, dur):
         bb = d.textbbox((0, 0), sub, font=F_SUB)
         d.text(((W - (bb[2] - bb[0])) // 2, y + 215), sub, font=F_SUB, fill=DORADO + (a2,))
     else:
-        poner_foto(img, foto, tl, vis, entrada)
+        poner_foto(img, foto, tl, dur, vis, entrada)
         desliz = int(80 * (1 - entrada))
         y = 250 if idx == 0 else 280
         a_e = int(255 * vis)
