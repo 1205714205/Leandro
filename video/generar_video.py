@@ -26,14 +26,19 @@ DORADO = (232, 190, 110)
 BLANCO = (245, 248, 250)
 GRIS = (170, 190, 205)
 
+# Narración con la voz del Dr. Leandro (ElevenLabs). Si existe, se mezcla
+# sobre la música y las escenas están sincronizadas con sus frases.
+NARRACION = os.path.join(AQUI, "narracion_leandro.mp3")
+RETRASO_VOZ_MS = 800
+
 # (duración en segundos, etiqueta, título, subtítulo)
 ESCENAS = [
-    (6.0, "PERFIL PROFESIONAL", "Dr. Leandro Pio\nValero Peñafiel", "Médico · Especialista en Salud Digital"),
-    (5.5, "01 · ESPECIALIDAD", "Salud Digital", "Tecnología e innovación al servicio\nde la atención médica"),
-    (5.5, "02 · MASTERADO", "Gerencia en\nServicios de la Salud", "Gestión y dirección de instituciones de salud"),
-    (5.5, "03 · MASTERADO", "Asesoramiento de Imagen\ny Consultoría Política", "Comunicación estratégica y liderazgo"),
-    (5.5, "04 · EN CURSO", "Masterado en\nSexología", "Salud integral y bienestar humano"),
-    (7.0, "", "Leandro Valero", "Salud · Gestión · Comunicación"),
+    (6.7, "PERFIL PROFESIONAL", "Dr. Leandro Pio\nValero Peñafiel", "Médico · Especialista en Salud Digital"),
+    (4.4, "01 · ESPECIALIDAD", "Salud Digital", "Tecnología e innovación al servicio\nde la atención médica"),
+    (2.7, "02 · MASTERADO", "Gerencia en\nServicios de la Salud", "Gestión y dirección de instituciones de salud"),
+    (3.2, "03 · MASTERADO", "Asesoramiento de Imagen\ny Consultoría Política", "Comunicación estratégica y liderazgo"),
+    (6.5, "04 · EN CURSO", "Masterado en\nSexología", "Salud integral y bienestar humano"),
+    (8.0, "", "Leandro Valero", "Salud · Gestión · Comunicación"),
 ]
 TOTAL = sum(e[0] for e in ESCENAS)
 
@@ -172,8 +177,18 @@ def generar_audio():
         "ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi",
         "-i", f"aevalsrc='{expr}|{expr}':s=44100:d={TOTAL}",
         "-af", f"aecho=0.8:0.7:120|240:0.35|0.2,afade=t=in:d=2,afade=t=out:st={TOTAL-2.5}:d=2.5,lowpass=f=2500",
-        AUDIO,
+        AUDIO if not os.path.exists(NARRACION) else AUDIO + ".musica.wav",
     ], check=True)
+    if os.path.exists(NARRACION):
+        musica = AUDIO + ".musica.wav"
+        subprocess.run([
+            "ffmpeg", "-y", "-loglevel", "error", "-i", musica, "-i", NARRACION,
+            "-filter_complex",
+            f"[0:a]volume=0.45[m];[1:a]adelay={RETRASO_VOZ_MS}|{RETRASO_VOZ_MS},volume=1.6[v];"
+            "[m][v]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95",
+            "-ac", "2", AUDIO,
+        ], check=True)
+        os.remove(musica)
 
 
 def main():
